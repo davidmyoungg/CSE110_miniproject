@@ -33,7 +33,7 @@ import javafx.scene.paint.ImagePattern;
 import javafx.scene.shape.Circle;
 import javafx.geometry.Pos;
 
-class Contact extends HBox{
+class Contact extends HBox implements Comparable<Contact>{
     private Label index;
     private TextField contactName;
     private TextField contactNumber;
@@ -88,6 +88,7 @@ class Contact extends HBox{
         contactName.setEditable(false);
         contactNumber.setEditable(false);
         contactEmail.setEditable(false);
+        imageButton.setDisable(true);
 
         selectButton = new Button("Edit"); // creates a button for marking the task as done
         selectButton.setPrefSize(50, 20);
@@ -137,6 +138,7 @@ class Contact extends HBox{
             contactName.setEditable(false);
             contactNumber.setEditable(false);
             contactEmail.setEditable(false);
+            imageButton.setDisable(true);
             this.setStyle("-fx-border-color: #000000; -fx-border-width: 0; -fx-font-weight: bold;"); // remove border of task
             for (int i = 0; i < this.getChildren().size(); i++) {
                 this.getChildren().get(i).setStyle("-fx-background-color: #DAE5EA; -fx-border-width: 0;"); // change color of task to gray
@@ -147,11 +149,17 @@ class Contact extends HBox{
             contactName.setEditable(true);
             contactNumber.setEditable(true);
             contactEmail.setEditable(true);
+            imageButton.setDisable(false);
             this.setStyle("-fx-border-color: #000000; -fx-border-width: 0; -fx-font-weight: bold;"); // remove border of task
             for (int i = 0; i < this.getChildren().size(); i++) {
                 this.getChildren().get(i).setStyle("-fx-background-color: #BCE29E; -fx-border-width: 0;"); // change color of task to green
             }
         }
+    }
+
+    @Override
+    public int compareTo(Contact other) {
+        return this.contactName.getText().compareTo(other.getContactName().getText());
     }
 }
 
@@ -224,18 +232,20 @@ class ContactList extends VBox{
      */
     public void sortContacts() {
         // Stores the items into an ArrayList to sort
-        ArrayList<String> contacts = new ArrayList<String>();
-        for (int i = 0; i < this.getChildren().size(); i++) {
-            contacts.add(((Contact) this.getChildren().get(i)).getContactName().getText());
-        }
+        List<Contact> contacts = this.getChildren().stream()
+                .filter(node -> node instanceof Contact)
+                .map(node -> (Contact) node)
+                .collect(Collectors.toList());
 
+        // Sort the list of contacts
         Collections.sort(contacts);
- 
-        // Traverses the current list and updates based on alphabetical order
-        for (int j = 0; j < this.getChildren().size(); j++) {
-            Contact task = (Contact) this.getChildren().get(j);
-            task.getContactName().setText(contacts.get(j));
-        }
+
+        // Clear the current list and add back the sorted contacts
+        this.getChildren().clear();
+        this.getChildren().addAll(contacts);
+
+        // Update contact indices
+        this.updateContactIndices();
     }
 }
 
